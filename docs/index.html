@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HubSpot CRM MCP Server</title>
+<meta name="description" content="An MCP server connecting Claude to a HubSpot CRM — contacts, deals, tickets, and cross-object account summaries.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="topbar">
+  <div class="brand"><span class="dot" aria-hidden="true"></span> hubspot-crm-mcp-server</div>
+  <nav aria-label="Section navigation">
+    <a href="#what">What it does</a>
+    <a href="#tools">Tools</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#demo">Demo</a>
+    <a href="#setup">Setup</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode">
+      <span class="icon-dark" aria-hidden="true">&#9789;</span><span class="icon-light" aria-hidden="true">&#9728;&#65039;</span>
+    </button>
+  </nav>
+</div>
+
+<main id="main" class="wrap">
+  <header class="hero">
+    <div class="kicker">Model Context Protocol Server</div>
+    <h1>Connect Claude to a real HubSpot CRM.</h1>
+    <p class="lede">
+      A small, focused MCP server exposing HubSpot contacts, deals, and support tickets as tools Claude
+      can call directly — search, create, update, and a cross-object account summary — built the way a
+      client engineer would ship a real customer integration, not a demo script.
+    </p>
+    <div class="badges">
+      <span class="badge status">26 tests passing</span>
+      <span class="badge">TypeScript</span>
+      <span class="badge">Official MCP SDK</span>
+      <span class="badge">Zero HubSpot SDK dependency</span>
+      <span class="badge">MIT licensed</span>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/SaraMarubel/hubspot-crm-mcp-server">View source on GitHub</a>
+      <a class="btn btn-secondary" href="https://github.com/SaraMarubel/hubspot-crm-mcp-server#setup">Setup guide</a>
+    </div>
+  </header>
+
+  <section class="block" id="what" aria-labelledby="what-h">
+    <h2 id="what-h">What it does</h2>
+    <p class="sub">The gap this fills, in plain terms.</p>
+    <p>
+      Enterprise customers who want Claude connected to their own business systems need someone to build
+      that connector. This server is that connector for HubSpot: it speaks the
+      <a href="https://modelcontextprotocol.io">Model Context Protocol</a>, a standard that lets Claude
+      call out to external tools, and translates each call into a real, authenticated HubSpot API request.
+    </p>
+    <p>
+      Ask Claude to find a contact, move a deal to a new stage, open a support ticket, or summarize an
+      account — and if this server is running, it actually happens in the CRM. Nothing here is simulated:
+      every tool makes a genuine HubSpot API call, with the same auth, error handling, and association
+      logic a production integration needs.
+    </p>
+  </section>
+
+  <section class="block" id="tools" aria-labelledby="tools-h">
+    <h2 id="tools-h">10 tools, 4 object types</h2>
+    <p class="sub">Full read/write coverage of the three CRM objects a sales or support team actually works in day to day, plus one tool that isn't a thin wrapper.</p>
+    <div class="tool-grid">
+      <article class="tool-card"><div class="cat">Contacts</div><code>search_contacts</code><div class="desc">Free-text search across name, email, company.</div></article>
+      <article class="tool-card"><div class="cat">Contacts</div><code>get_contact</code><div class="desc">Fetch one contact's full profile by ID.</div></article>
+      <article class="tool-card"><div class="cat">Contacts</div><code>create_contact</code><div class="desc">Create a new contact.</div></article>
+      <article class="tool-card"><div class="cat deals">Deals</div><code>search_deals</code><div class="desc">Search deals, optionally filtered by pipeline stage.</div></article>
+      <article class="tool-card"><div class="cat deals">Deals</div><code>get_deal</code><div class="desc">Fetch one deal, including its associated contacts.</div></article>
+      <article class="tool-card"><div class="cat deals">Deals</div><code>create_deal</code><div class="desc">Create a deal, optionally associated with a contact.</div></article>
+      <article class="tool-card"><div class="cat deals">Deals</div><code>update_deal_stage</code><div class="desc">Move a deal to a new pipeline stage.</div></article>
+      <article class="tool-card"><div class="cat tickets">Tickets</div><code>search_tickets</code><div class="desc">Search support tickets, optionally filtered by priority.</div></article>
+      <article class="tool-card"><div class="cat tickets">Tickets</div><code>create_ticket</code><div class="desc">Create a support ticket, optionally associated with a contact.</div></article>
+      <article class="tool-card"><div class="cat cross">Cross-object</div><code>get_account_summary</code><div class="desc">One contact's profile + every deal + every ticket, in a single brief.</div></article>
+    </div>
+  </section>
+
+  <section class="block" id="architecture" aria-labelledby="arch-h">
+    <h2 id="arch-h">Architecture</h2>
+    <p class="sub">Claude never talks to HubSpot directly — every call is mediated, authenticated, and shaped by this server.</p>
+    <svg class="arch-diagram" viewBox="0 0 760 160" role="img" aria-labelledby="arch-title arch-desc">
+      <title id="arch-title">Architecture diagram</title>
+      <desc id="arch-desc">Claude connects over stdio using the Model Context Protocol to the HubSpot CRM MCP Server, which makes authenticated REST API calls over HTTPS to HubSpot, covering contacts, deals, and tickets.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--text-muted)"></path>
+        </marker>
+      </defs>
+      <!-- Claude box -->
+      <rect x="20" y="70" width="150" height="60" rx="10" fill="var(--surface-1)" stroke="var(--border)"></rect>
+      <text x="95" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">Claude</text>
+      <text x="95" y="113" text-anchor="middle" font-size="10.5" fill="var(--text-muted)">Desktop / Code</text>
+
+      <line x1="170" y1="100" x2="278" y2="100" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"></line>
+      <text x="224" y="88" text-anchor="middle" font-size="10" fill="var(--text-muted)">MCP / stdio</text>
+
+      <!-- Server box -->
+      <rect x="280" y="55" width="200" height="90" rx="10" fill="var(--surface-1)" stroke="var(--accent)" stroke-width="1.5"></rect>
+      <text x="380" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">hubspot-crm</text>
+      <text x="380" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">-mcp-server</text>
+      <text x="380" y="118" text-anchor="middle" font-size="10.5" fill="var(--text-muted)">10 tools · Zod-validated</text>
+      <text x="380" y="132" text-anchor="middle" font-size="10.5" fill="var(--text-muted)">input</text>
+
+      <line x1="480" y1="100" x2="588" y2="100" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"></line>
+      <text x="534" y="88" text-anchor="middle" font-size="10" fill="var(--text-muted)">HTTPS / REST</text>
+
+      <!-- HubSpot box -->
+      <rect x="590" y="70" width="150" height="60" rx="10" fill="var(--surface-1)" stroke="var(--border)"></rect>
+      <text x="665" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text-primary)">HubSpot CRM</text>
+      <text x="665" y="113" text-anchor="middle" font-size="10.5" fill="var(--text-muted)">API v3 / v4</text>
+    </svg>
+    <p>
+      The server holds the only HubSpot credential (a private-app access token, read from an environment
+      variable — never hard-coded or logged). Claude only ever sees the tool names, their typed inputs,
+      and the formatted text results; it has no direct network access to HubSpot at all.
+    </p>
+  </section>
+
+  <section class="block" id="demo" aria-labelledby="demo-h">
+    <h2 id="demo-h">Example interaction</h2>
+    <p class="sub">Real, tested output from <code>get_account_summary</code> — the cross-object tool that's the actual reason to put an MCP server in front of a CRM instead of just using its UI.</p>
+    <div class="demo-card">
+      <div class="demo-head">
+        <span class="prompt">&ldquo;Give me an account summary for contact 12345&rdquo;</span>
+        <span class="tag">get_account_summary</span>
+      </div>
+      <pre># Account Summary — Ada Lovelace
+Email: ada@acme.com  |  Company: Acme Corp  |  Title: VP Engineering
+Lifecycle stage: customer
+
+## Deals (2)
+- Acme Platform Expansion — $48,000.00 — presentationscheduled
+- Acme Add-on Seats — $6,200.00 — closedwon
+Total deal value on record: $54,200.00
+
+## Support tickets (1)
+- SSO login redirect loop [HIGH]</pre>
+      <div class="demo-note">Illustrative example built from this project's own test fixtures — format matches real tool output exactly, run here against sample data rather than a live account.</div>
+    </div>
+  </section>
+
+  <section class="block" id="setup" aria-labelledby="setup-h">
+    <h2 id="setup-h">Setup</h2>
+    <p class="sub">Five steps from clone to Claude calling real HubSpot tools. Full detail in the README.</p>
+    <ol class="step-list">
+      <li><strong>Install and build.</strong><pre>npm install
+npm run build</pre></li>
+      <li><strong>Create a HubSpot private app</strong> in a free <a href="https://developers.hubspot.com/docs/getting-started/account-types#developer-test-accounts">developer test account</a> (preloaded with sample data) — Settings &rarr; Integrations &rarr; Private Apps, with contacts/deals/tickets read+write scopes.</li>
+      <li><strong>Set the token</strong> — copy <code>.env.example</code> to <code>.env</code> and paste it in.</li>
+      <li><strong>Point Claude at it</strong> via your MCP client config (Claude Desktop or Claude Code):
+        <pre>{
+  "mcpServers": {
+    "hubspot-crm": {
+      "command": "node",
+      "args": ["/absolute/path/to/dist/index.js"],
+      "env": { "HUBSPOT_ACCESS_TOKEN": "your-token" }
+    }
+  }
+}</pre>
+      </li>
+      <li><strong>Or test it standalone</strong> with <code>npm run inspector</code> — opens the official MCP Inspector to call each tool directly, no Claude client required.</li>
+    </ol>
+  </section>
+
+  <section class="block" aria-labelledby="stack-h">
+    <h2 id="stack-h">Tech stack &amp; testing philosophy</h2>
+    <p class="sub">Small, readable, and honest about its own limitations.</p>
+    <div class="stack-row">
+      <span class="stack-pill"><span class="sw" style="background:var(--series-1)" aria-hidden="true"></span>TypeScript</span>
+      <span class="stack-pill"><span class="sw" style="background:var(--series-2)" aria-hidden="true"></span>@modelcontextprotocol/sdk</span>
+      <span class="stack-pill"><span class="sw" style="background:var(--series-3)" aria-hidden="true"></span>Zod</span>
+      <span class="stack-pill"><span class="sw" style="background:var(--series-4)" aria-hidden="true"></span>Vitest</span>
+      <span class="stack-pill"><span class="sw" style="background:var(--series-7)" aria-hidden="true"></span>GitHub Actions CI</span>
+    </div>
+    <p style="margin-top:20px;">
+      Every tool's business logic is a standalone exported function, separate from its MCP registration —
+      so it's directly unit-testable without spinning up a protocol transport. All 26 tests run against a
+      mocked <code>fetch</code>, so CI never needs a live HubSpot credential. The server was also verified
+      end-to-end with a real MCP client connected over stdio, including a genuine HubSpot API
+      authentication error round-tripping cleanly back through the protocol as a tool-level error rather
+      than a crash.
+    </p>
+  </section>
+
+  <footer class="site">
+    Not affiliated with or endorsed by HubSpot. Independently built as a portfolio project.<br>
+    <a href="https://github.com/SaraMarubel/hubspot-crm-mcp-server">Source on GitHub</a> &middot;
+    <a href="https://modelcontextprotocol.io">About MCP</a>
+  </footer>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
